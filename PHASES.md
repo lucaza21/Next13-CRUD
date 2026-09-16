@@ -73,7 +73,17 @@ Plan para llevar este CRUD tutorial (Next.js 13 + Mongoose/MongoDB) a un nivel m
 - `libs/search.js`: se extrajo `escapeRegExp` (antes vivía inline en `TopicsList.jsx`) para poder testearla aislada.
 - `libs/__tests__/validation.test.js` (11 tests) y `libs/__tests__/search.test.js` (4 tests, incluye el caso de regex hostil `(a+)+$` verificando que se trata como texto literal) — 15/15 pasando.
 
+### Tests de integración ✅ (completada, parte 2 de 2)
+
+- `playwright.config.js`: corre contra un puerto dedicado (3100) para no chocar con el dev server manual del usuario, `npm run test:e2e`.
+- `e2e/helpers/db.js`: helper de conexión directa a Mongo (mismo patrón que `scripts/`) para crear un usuario admin de prueba efímero (nunca se usan credenciales reales) y limpiar datos de prueba al final — **la limpieza corre en `afterAll`, incluso si un test falla a mitad de camino**.
+- Convención de seguridad para la limpieza: emails de prueba siempre empiezan con `pwtest_`, títulos de topics con `[PW-TEST]` — el cleanup solo borra por esos prefijos, nunca "todo".
+- `e2e/topics.spec.js` (5 tests, `test.describe.serial`): registro+login+crear topic, buscar (match y sin match), editar (dueño), un segundo usuario no ve los botones de editar/borrar del topic ajeno, y un admin efímero borra la cuenta y el topic de otro usuario (verificando el borrado en cascada).
+- **Bugs reales encontrados y corregidos** durante la implementación:
+  1. Un topic huérfano de un intento anterior interrumpido por timeout colisionó con el siguiente run (mismo título fijo) — se agregó un sufijo único (`runId`) también a los títulos de prueba, no solo a los emails.
+  2. Cada test abría una pestaña nueva sin cerrar las anteriores, acumulando conexiones WebSocket de Hot Reload de Next hasta agotar recursos y matar el proceso del navegador a mitad de un test — solucionado reusando una única página compartida entre todos los tests del bloque serial (patrón estándar de Playwright para tests dependientes).
+- Verificado: 5/5 pasando en dos corridas seguidas (no flaky), y confirmado con una consulta directa a Mongo que no queda ningún dato de prueba huérfano después de correr la suite.
+
 ### Pendiente
 
-- Tests de integración (Playwright, ya instalado): login/registro, crear/buscar/editar/borrar topic, y control de acceso (ownership/admin) contra Atlas real, con limpieza automática por convención de nombres de prueba.
 - Opcional: evaluar migrar de Mongoose/Mongo a Prisma + Postgres como ejercicio de stack relacional.
