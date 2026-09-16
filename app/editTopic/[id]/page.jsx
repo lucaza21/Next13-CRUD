@@ -5,8 +5,15 @@ import TopicForm from "@/components/TopicForm";
 
 const getTopicById = async (id) => {
     await connectMongoDB();
-    const topic = await Topic.findById(id).lean();
-    return topic;
+    try {
+        const topic = await Topic.findById(id).lean();
+        return topic;
+    } catch (error) {
+        if (error.name === "CastError") {
+            return null;
+        }
+        throw error;
+    }
 }
 
 export default async function EditTopic({ params }) {

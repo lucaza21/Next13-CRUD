@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
+import { createTopic, updateTopic } from "@/app/actions/topics";
 
 export default function TopicForm({ mode, id, initialTitle = "", initialDescription = "" }) {
     const [title, setTitle] = useState(initialTitle);
@@ -14,28 +15,18 @@ export default function TopicForm({ mode, id, initialTitle = "", initialDescript
         e.preventDefault();
         setIsSubmitting(true);
         try {
-            const res = await fetch(mode === "add" ? "/api/topics" : `/api/topics/${id}`, {
-                method: mode === "add" ? "POST" : "PUT",
-                headers: {
-                    "Content-type": "application/json",
-                },
-                body: JSON.stringify({ title, description })
-            });
+            const result = mode === "add"
+                ? await createTopic({ title, description })
+                : await updateTopic(id, { title, description });
 
-            if (res.ok) {
-                toast.success(mode === "add" ? "Topic creado correctamente" : "Topic actualizado correctamente");
-                router.refresh();
+            if (result.success) {
+                toast.success(result.message);
                 router.push("/");
+            } else if (result.errors) {
+                const messages = Object.values(result.errors).flat().join("\n");
+                toast.error(messages || "Datos inválidos");
             } else {
-                const err = await res.json().catch(() => null);
-                if (err && err.errors) {
-                    const messages = Object.values(err.errors).flat().join("\n");
-                    toast.error(messages || "Datos inválidos");
-                } else if (err && err.message) {
-                    toast.error(err.message);
-                } else {
-                    toast.error(mode === "add" ? "Failed to create topic" : "Failed to update topic");
-                }
+                toast.error(result.message);
             }
         } catch (error) {
             console.error(error);

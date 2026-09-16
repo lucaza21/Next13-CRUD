@@ -24,12 +24,16 @@ Plan para llevar este CRUD tutorial (Next.js 13 + Mongoose/MongoDB) a un nivel m
 - Botón "Cancelar" en `TopicForm.jsx` (crear/editar) que vuelve a `/` sin guardar.
 - Rediseño visual completo con Tailwind (paleta esmeralda consistente): fondo con gradiente en `app/layout.js`, navbar con gradiente oscuro y botón de acento, cards con hover/elevación y backdrop-blur en `TopicsList.jsx`, inputs con focus ring y card de formulario en `TopicForm.jsx`. Sin librerías de UI nuevas.
 
-## Fase 2 — Modernizar a patrones actuales de Next (14/15)
+## Fase 2 — Modernizar a patrones actuales de Next (14/15) ✅ (completada)
 
-- Migrar create/update/delete de fetch + route handlers a **Server Actions** (`"use server"`), con `revalidatePath("/")` en vez de `router.refresh()`.
-- Añadir `loading.tsx`, `error.tsx`, `not-found.tsx` por segmento (hoy no existe ninguno).
-- Si se sube a Next 15: `params` pasa a ser `Promise` — actualizar los usos en `editTopic/[id]/page.jsx` y `app/api/topics/[id]/route.js`.
-- Migrar a **TypeScript** (tipar modelo, props, responses de API).
+- **Server Actions** (`app/actions/topics.js`, `"use server"`): `createTopic`, `updateTopic`, `deleteTopic` — validan con Zod, usan Mongoose directo, y llaman `revalidatePath("/")`. Contrato de retorno consistente: `{ success, message, errors? }`.
+- `TopicForm.jsx` y `RemoveBtn.jsx` llaman las Server Actions directamente (ya no hacen `fetch`).
+- **Eliminadas las API routes** (`app/api/topics/route.js`, `app/api/topics/[id]/route.js`) — decisión consciente de ir 100% a Server Actions en vez de mantener una REST API paralela.
+- `experimental.serverActions: true` habilitado en `next.config.js` (requerido en Next 13.4; se puede quitar al subir a Next 14+, donde es estable).
+- Agregados `app/loading.js`, `app/editTopic/[id]/loading.js`, `app/not-found.js` (cubre tanto `notFound()` explícito como rutas inexistentes reales — verificado con `curl` que responde 404), y `app/error.js` (error boundary con botón "Reintentar").
+- Bug encontrado y corregido en vivo: `editTopic/[id]/page.jsx` no atrapaba `CastError` al pedir un topic con `id` con formato inválido, cayendo al `error.js` genérico en vez del `not-found.js`. Ahora `getTopicById` captura `CastError` y retorna `null`, dejando que `notFound()` se dispare correctamente.
+- Verificado end-to-end contra Atlas real (conexión, páginas cargando, 404 real y `notFound()` mostrando la página custom).
+- **Pendiente para más adelante** (decisión explícita, no ahora): migrar a TypeScript. Si se sube a Next 15, recordar que `params` pasa a ser `Promise` en `editTopic/[id]/page.jsx`.
 
 ## Fase 3 — Features "senior"
 

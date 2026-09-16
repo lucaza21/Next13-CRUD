@@ -3,22 +3,20 @@
 import { HiOutlineTrash } from "react-icons/hi"
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
+import { deleteTopic } from "@/app/actions/topics";
 
 export default function RemoveBtn({ id }) {
 
     const router = useRouter();
 
-    const deleteTopic = async () => {
+    const performDelete = async () => {
         try {
-            const res = await fetch(`/api/topics?id=${id}`, {
-                method: "DELETE",
-            });
-
-            if (res.ok) {
-                toast.success("Topic eliminado correctamente");
+            const result = await deleteTopic(id);
+            if (result.success) {
+                toast.success(result.message);
                 router.refresh();
             } else {
-                throw new Error("Failed to delete topic");
+                toast.error(result.message);
             }
         } catch (error) {
             console.error(error);
@@ -33,7 +31,7 @@ export default function RemoveBtn({ id }) {
                 <div className="flex gap-2 justify-end">
                     <button
                         className="bg-red-600 text-white px-3 py-1 rounded"
-                        onClick={() => { toast.dismiss(t.id); deleteTopic(); }}
+                        onClick={() => { toast.dismiss(t.id); performDelete(); }}
                     >
                         Eliminar
                     </button>
