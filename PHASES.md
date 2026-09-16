@@ -13,10 +13,12 @@ Plan para llevar este CRUD tutorial (Next.js 13 + Mongoose/MongoDB) a un nivel m
 - Configurado `next.config.js` + `.gitignore` para cargar credenciales desde `atlas-credentials.env` sin tocar `.env`.
 - Verificado end-to-end contra un cluster de MongoDB Atlas real: crear, listar, editar y borrar topics funcionan. Detalles de la configuración de Atlas y problemas de red/DNS resueltos en [TROUBLESHOOTING.md](TROUBLESHOOTING.md).
 
-## Fase 1 — Validación y esquema (en progreso)
+## Fase 1 — Validación y esquema ✅ (completada)
 
-- Introducir **Zod** para validar el body en los route handlers (rechazar payloads vacíos/malformados antes de tocar Mongoose), como capa adicional a la validación de Mongoose.
-- Unificar `app/addTopic/page.jsx` y `components/EditTopicForm.jsx` en un solo componente `<TopicForm mode="add|edit">` — hoy son ~50 líneas duplicadas con comportamiento de validación distinto entre ambos.
+- Zod (`libs/validation.js`, `topicSchema`) valida el body en POST y PUT antes de tocar Mongoose; ambos devuelven 400 con `errors` por campo si falla.
+- Contrato de la API unificado: PUT ahora recibe `{ title, description }` (antes `{ newTitle, newDescription }`), consistente con POST.
+- `app/addTopic/page.jsx` y `components/EditTopicForm.jsx` reemplazados por un único `components/TopicForm.jsx` (`mode="add"|"edit"`), con estado `isSubmitting` (deshabilita el botón, evita doble-submit) y manejo de errores de Zod en la UI.
+- `EditTopicForm.jsx` eliminado. Verificado con `npm run lint` (0 warnings/errores).
 
 ## Fase 2 — Modernizar a patrones actuales de Next (14/15)
 

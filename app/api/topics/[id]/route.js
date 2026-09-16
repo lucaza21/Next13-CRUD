@@ -1,11 +1,20 @@
 import connectMongoDB from "@/libs/mongodb";
 import Topic from "@/models/topic";
 import { NextResponse } from "next/server";
+import { topicSchema } from "@/libs/validation";
 
 export async function PUT(request, { params }) {
     try {
         const { id } = params;
-        const { newTitle: title, newDescription: description } = await request.json();
+        const body = await request.json();
+        const result = topicSchema.safeParse(body);
+        if (!result.success) {
+            return NextResponse.json(
+                { message: "Datos inválidos", errors: result.error.flatten().fieldErrors },
+                { status: 400 }
+            );
+        }
+        const { title, description } = result.data;
         await connectMongoDB();
         const updated = await Topic.findByIdAndUpdate(
             id,

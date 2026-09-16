@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import connectMongoDB from "@/libs/mongodb";
 import Topic from "@/models/topic";
-import EditTopicForm from "@/components/EditTopicForm";
+import TopicForm from "@/components/TopicForm";
 
 const getTopicById = async (id) => {
     await connectMongoDB();
@@ -21,7 +21,7 @@ export default async function EditTopic({ params }) {
 
     return (
         <div>
-            <EditTopicForm id={id} title={title} description={description} />
+            <TopicForm mode="edit" id={id} initialTitle={title} initialDescription={description} />
         </div>
     );
 }

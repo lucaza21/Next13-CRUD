@@ -1,16 +1,19 @@
 import connectMongoDB from "@/libs/mongodb";
 import Topic from "@/models/topic";
 import { NextResponse } from "next/server";
+import { topicSchema } from "@/libs/validation";
 
 export async function POST(request) {
     try {
-        const { title, description } = await request.json();
-        if (!title || !description) {
+        const body = await request.json();
+        const result = topicSchema.safeParse(body);
+        if (!result.success) {
             return NextResponse.json(
-                { message: "title y description son requeridos" },
+                { message: "Datos inválidos", errors: result.error.flatten().fieldErrors },
                 { status: 400 }
             );
         }
+        const { title, description } = result.data;
         await connectMongoDB();
         await Topic.create({ title, description });
         return NextResponse.json({ message: "Topic Created" }, { status: 201 });
