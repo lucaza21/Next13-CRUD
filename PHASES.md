@@ -49,9 +49,16 @@ Plan para llevar este CRUD tutorial (Next.js 13 + Mongoose/MongoDB) a un nivel m
 - **Bug de configuración encontrado y corregido**: `NEXTAUTH_SECRET`/`NEXTAUTH_URL` deben vivir en un archivo `.env`/`.env.local` **nativo** de Next (no en `atlas-credentials.env`, que se carga con un loader custom que solo corre en runtime Node.js). `middleware.js` corre en Edge Runtime y no veía esas variables, causando un error de configuración de NextAuth al proteger `/`. Solución: `NEXTAUTH_SECRET`/`NEXTAUTH_URL` van en `.env.local` (nativo, gitignored); `MONGODB_URI`/`ADMIN_EMAIL` siguen en `atlas-credentials.env` (solo se usan en Node.js runtime).
 - Scripts de mantenimiento en `scripts/` (uso manual, no se ejecutan como parte de la app): `assign-owner-to-legacy-topics.js` (asigna los topics sin `owner` a un usuario dado) y `promote-to-admin.js` (sube el rol de una cuenta existente a `admin` sin perder la cuenta). Ya usados una vez para migrar los datos previos a este cambio.
 
+### Paginación y búsqueda ✅ (completada)
+
+- `components/SearchBar.jsx` (Client): input que actualiza `?q=` en la URL (resetea a página 1).
+- `components/Pagination.jsx` (Server): links "Anterior"/"Siguiente" + "Página X de Y", preservando `q`; no se renderiza si hay una sola página.
+- `TopicsList.jsx`: `PAGE_SIZE = 5`, filtro `$or` con `$regex` case-insensitive sobre `title`/`description`, `countDocuments` + `skip`/`limit`, página clamped a un rango válido.
+- **Hardening aplicado**: el texto de búsqueda se escapa (`escapeRegExp`) antes de construir el filtro — sin esto, un query como `(a+)+$` podía causar ReDoS (bloqueo del proceso por backtracking catastrófico) además de comportamiento de regex inesperado con caracteres especiales. Verificado con `curl` que ese patrón ya no rompe nada.
+- Verificado end-to-end: búsqueda que matchea, búsqueda vacía (mensaje "No se encontraron topics"), y el caso ReDoS, los 3 contra Atlas real.
+
 ### Pendiente
 
-- Paginación + búsqueda en el listado (hoy `Topic.find()` trae toda la colección sin límite).
 - Tests: unitarios (validación de schema/Zod) + integración (Playwright) para los 3 flujos CRUD y para el control de acceso (ownership/admin).
 - Observabilidad: logging estructurado en vez de `console.log` sueltos.
 - Opcional: evaluar migrar de Mongoose/Mongo a Prisma + Postgres como ejercicio de stack relacional.
