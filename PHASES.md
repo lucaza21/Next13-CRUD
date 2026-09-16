@@ -56,6 +56,7 @@ Plan para llevar este CRUD tutorial (Next.js 13 + Mongoose/MongoDB) a un nivel m
 - `TopicsList.jsx`: `PAGE_SIZE = 5`, filtro `$or` con `$regex` case-insensitive sobre `title`/`description`, `countDocuments` + `skip`/`limit`, página clamped a un rango válido.
 - **Hardening aplicado**: el texto de búsqueda se escapa (`escapeRegExp`) antes de construir el filtro — sin esto, un query como `(a+)+$` podía causar ReDoS (bloqueo del proceso por backtracking catastrófico) además de comportamiento de regex inesperado con caracteres especiales. Verificado con `curl` que ese patrón ya no rompe nada.
 - Verificado end-to-end: búsqueda que matchea, búsqueda vacía (mensaje "No se encontraron topics"), y el caso ReDoS, los 3 contra Atlas real.
+- **Búsqueda mientras se escribe** con debounce de 350ms (evita disparar una query por cada tecla). Excepción: si el campo queda vacío, no se auto-dispara — hay que enviar el formulario explícitamente para volver a traer todos los items.
 
 ### Pendiente
 

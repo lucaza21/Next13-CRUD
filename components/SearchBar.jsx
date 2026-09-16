@@ -1,20 +1,40 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+
+const DEBOUNCE_MS = 350;
 
 export default function SearchBar() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const [value, setValue] = useState(searchParams.get("q") || "");
+    const debounceRef = useRef(null);
 
-    const handleSubmit = (e) => {
-        e.preventDefault();
+    const runSearch = (searchValue) => {
         const params = new URLSearchParams();
-        if (value.trim()) {
-            params.set("q", value.trim());
+        if (searchValue.trim()) {
+            params.set("q", searchValue.trim());
         }
         params.set("page", "1");
         router.push(`/?${params.toString()}`);
+    };
+
+    useEffect(() => {
+        const currentQ = searchParams.get("q") || "";
+        if (value === currentQ) return;
+        // Un campo vacío no dispara búsqueda automática: hay que enviar el
+        // formulario explícitamente para volver a traer todos los items.
+        if (value.trim() === "") return;
+
+        debounceRef.current = setTimeout(() => runSearch(value), DEBOUNCE_MS);
+        return () => clearTimeout(debounceRef.current);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [value]);
+
+    const handleSubmit = (e) => {
+        e.preventDefault();
+        clearTimeout(debounceRef.current);
+        runSearch(value);
     };
 
     return (
