@@ -21,9 +21,6 @@ export default function SearchBar({ initialQuery = "" }) {
     const handleChange = (e) => {
         const nextValue = e.target.value;
         clearTimeout(debounceRef.current);
-        // Un campo vacío no dispara búsqueda automática: hay que enviar el
-        // formulario explícitamente para volver a traer todos los items.
-        if (nextValue.trim() === "") return;
         debounceRef.current = setTimeout(() => runSearch(nextValue), DEBOUNCE_MS);
     };
 
