@@ -1,20 +1,10 @@
-const fs = require("fs");
 const path = require("path");
 const dns = require("dns");
 const mongoose = require("mongoose");
-const { processEnv } = require("@next/env");
+const { loadEnvConfig } = require("@next/env");
 
 dns.setServers(["8.8.8.8", "1.1.1.1"]);
-
-const projectRoot = path.join(__dirname, "..");
-const credentialsPath = path.join(projectRoot, "atlas-credentials.env");
-
-if (fs.existsSync(credentialsPath)) {
-    processEnv(
-        [{ path: "atlas-credentials.env", contents: fs.readFileSync(credentialsPath, "utf8") }],
-        projectRoot
-    );
-}
+loadEnvConfig(path.join(__dirname, ".."));
 
 async function main() {
     const email = process.argv[2];

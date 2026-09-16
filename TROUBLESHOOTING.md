@@ -9,19 +9,24 @@
 - Al crear el cluster, usar **"Automate security setup"** para que Atlas guíe la creación del usuario de BD y el Network Access en el mismo flujo.
 - Connection string: Atlas → **Connect** → **Drivers** (no "Compass"/"Shell"/etc.) → copiar el string `mongodb+srv://...` para Node.js.
 
-## Variables de entorno en un archivo custom (`atlas-credentials.env`)
+## Variables de entorno
 
-Este proyecto guarda las credenciales de Mongo en `atlas-credentials.env` (no en `.env`), con:
+Todas las variables de entorno viven en **`.env.local`** (archivo nativo de Next, gitignored):
 
 ```
-MONGODB_USERNAME=...
-MONGODB_PASSWORD=...
 MONGODB_URI=mongodb+srv://...
+NEXTAUTH_SECRET=...
+NEXTAUTH_URL=http://localhost:3001
+ADMIN_EMAIL=...
 ```
 
-Next.js **no carga automáticamente** archivos con nombre custom (solo `.env`, `.env.local`, `.env.development`, etc.), así que en [next.config.js](next.config.js) se usa `processEnv` de `@next/env` (el paquete interno que usa el propio Next) para inyectar ese archivo a `process.env` al arrancar.
+**Historia (ya resuelta, dejar como referencia):** el proyecto usó al principio un archivo custom `atlas-credentials.env`, cargado con un hack en `next.config.js` (`processEnv` de `@next/env` inyectado a mano). Esto funcionaba para código que corre en runtime Node.js (Server Components, Server Actions, API routes), pero causaba dos bugs:
+1. `middleware.js` corre en **Edge Runtime**, que nunca ve esa inyección custom — causaba `NEXTAUTH_SECRET missing` / error de configuración de NextAuth en cualquier ruta protegida por middleware.
+2. Next.js recarga sus variables de entorno internamente varias veces durante `dev` (compilación bajo demanda de rutas, hot-reload) llamando a `loadEnvConfig`, que **resetea `process.env` a un snapshot tomado antes de nuestra inyección custom** — variables como `MONGODB_URI` desaparecían intermitentemente en rutas compiladas después del arranque (ej. `/api/auth/[...nextauth]`), aunque hubieran funcionado en las primeras peticiones.
 
-`atlas-credentials.env` está en `.gitignore` — nunca debe llegar al repo.
+**Solución definitiva:** se eliminó el hack de `next.config.js` y todas las variables se consolidaron en `.env.local`, el mecanismo nativo de Next que funciona de forma consistente en ambos runtimes. Los scripts de `scripts/` usan `loadEnvConfig` de `@next/env` (la forma correcta de usarlo, apuntando a la raíz del proyecto) para leer ese mismo archivo fuera del contexto de Next.
+
+`atlas-credentials.env` y `.env.local` están en `.gitignore` — nunca deben llegar al repo.
 
 ## Problemas encontrados y solución
 
