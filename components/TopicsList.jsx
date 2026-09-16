@@ -7,10 +7,9 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/libs/authOptions";
 import Pagination from "./Pagination";
 import logger from "@/libs/logger";
+import { escapeRegExp } from "@/libs/search";
 
 const PAGE_SIZE = 5;
-
-const escapeRegExp = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
 const getTopics = async (query, page) => {
     await connectMongoDB();

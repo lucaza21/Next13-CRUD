@@ -67,7 +67,13 @@ Plan para llevar este CRUD tutorial (Next.js 13 + Mongoose/MongoDB) a un nivel m
 - **Bug real encontrado y corregido**: `pino-pretty` como `transport` (basado en worker threads) no es compatible con el bundling de servidor de Next.js — el worker no encuentra su módulo dentro de `.next/server/`, crasheando el dev server. Solución: usar `pino-pretty` como stream síncrono pasado directo al logger, no como `transport`.
 - Verificado en vivo (dev server + login real vía Playwright): log estructurado con timestamp/nivel/color aparece correctamente en consola sin crashear.
 
+### Tests unitarios ✅ (completada, parte 1 de 2)
+
+- **Vitest** instalado (`npm run test`), config en `vitest.config.js` con alias `@` igual que Next.
+- `libs/search.js`: se extrajo `escapeRegExp` (antes vivía inline en `TopicsList.jsx`) para poder testearla aislada.
+- `libs/__tests__/validation.test.js` (11 tests) y `libs/__tests__/search.test.js` (4 tests, incluye el caso de regex hostil `(a+)+$` verificando que se trata como texto literal) — 15/15 pasando.
+
 ### Pendiente
 
-- Tests: unitarios (validación de schema/Zod) + integración (Playwright, ya instalado) para los 3 flujos CRUD y para el control de acceso (ownership/admin).
+- Tests de integración (Playwright, ya instalado): login/registro, crear/buscar/editar/borrar topic, y control de acceso (ownership/admin) contra Atlas real, con limpieza automática por convención de nombres de prueba.
 - Opcional: evaluar migrar de Mongoose/Mongo a Prisma + Postgres como ejercicio de stack relacional.
