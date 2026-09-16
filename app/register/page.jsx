@@ -1,6 +1,5 @@
 "use client";
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { signIn } from "next-auth/react";
 import NextLink from "next/link";
 import toast from "react-hot-toast";
@@ -11,8 +10,6 @@ export default function RegisterPage() {
     const [password, setPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
     const [isSubmitting, setIsSubmitting] = useState(false);
-
-    const router = useRouter();
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -26,8 +23,10 @@ export default function RegisterPage() {
             if (result.success) {
                 toast.success(result.message);
                 await signIn("credentials", { email, password, redirect: false });
-                router.push("/");
-                router.refresh();
+                // Navegación completa (no router.push) para evitar que el
+                // router cache del cliente sirva una respuesta vieja de "/"
+                // de antes de que existiera la cookie de sesión.
+                window.location.href = "/";
             } else if (result.errors) {
                 const messages = Object.values(result.errors).flat().join("\n");
                 toast.error(messages || "Datos inválidos");

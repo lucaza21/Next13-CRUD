@@ -1,6 +1,5 @@
 "use client";
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { signIn } from "next-auth/react";
 import NextLink from "next/link";
 import toast from "react-hot-toast";
@@ -9,8 +8,6 @@ export default function LoginPage() {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [isSubmitting, setIsSubmitting] = useState(false);
-
-    const router = useRouter();
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -21,8 +18,10 @@ export default function LoginPage() {
                 toast.error("Email o contraseña incorrectos");
             } else if (res?.ok) {
                 toast.success("Sesión iniciada");
-                router.push("/");
-                router.refresh();
+                // Navegación completa (no router.push) para evitar que el
+                // router cache del cliente sirva una respuesta vieja de "/"
+                // de antes de que existiera la cookie de sesión.
+                window.location.href = "/";
             }
         } catch (error) {
             console.error(error);

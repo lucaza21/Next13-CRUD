@@ -79,3 +79,21 @@ Verificado con Playwright (navegador real, no solo `curl`): el input retiene el 
 
 ### 6. Warnings de "resource preloaded but not used" en consola del navegador
 Warnings de Chrome DevTools sobre `_next/static/css/app/layout.css` precargado y no usado a tiempo. Es ruido normal de Fast Refresh en modo desarrollo, no afecta funcionalidad — se puede ignorar.
+
+## Deploy en Vercel
+
+- El proyecto de Vercel está conectado a un repo **privado** distinto (`Next13-CRUD-private`), no al público (`Next13-CRUD`). Hay que empujar los cambios a ambos remotos (`origin` = público, `deploy` = privado) para que el deploy se actualice.
+- **Variables de entorno**: hay que agregar en Vercel (Settings → Environment Variables) las mismas 4 que en `.env.local`: `MONGODB_URI`, `NEXTAUTH_SECRET`, `NEXTAUTH_URL` (con el dominio real de producción, no `localhost`), `ADMIN_EMAIL`.
+- **Atlas Network Access**: por defecto solo permite tu IP local. Vercel usa IPs dinámicas (serverless), así que hay que agregar `0.0.0.0/0` (Allow access from anywhere) en Atlas → Network Access, si no la conexión a Mongo cuelga y las funciones responden 504.
+
+### 7. Login exitoso pero la página se queda mostrando `/login` (solo en producción/Vercel)
+Síntoma: el navbar ya refleja la sesión iniciada (email, botón "Cerrar sesión") pero la URL sigue en `/login?callbackUrl=...` y el contenido no cambia. En local (`next dev`) no pasa, solo en producción.
+
+**Causa:** el mismo tipo de bug que el de la búsqueda (ver punto 5) — `router.push("/")` después de un `signIn({ redirect: false })` es una navegación "suave" del lado del cliente, y el **router cache** de Next puede servir una respuesta cacheada de `/` de ANTES de que existiera la cookie de sesión, en vez de pedir la página fresca.
+
+**Solución:** usar una navegación completa del navegador en vez de `router.push` justo después del login/registro:
+```js
+// en vez de router.push("/") + router.refresh()
+window.location.href = "/";
+```
+Implementado en `app/login/page.jsx` y `app/register/page.jsx`.
