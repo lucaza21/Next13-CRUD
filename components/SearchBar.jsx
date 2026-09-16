@@ -1,13 +1,12 @@
 "use client";
-import { useState, useEffect, useRef } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRef } from "react";
+import { useRouter } from "next/navigation";
 
 const DEBOUNCE_MS = 350;
 
-export default function SearchBar() {
+export default function SearchBar({ initialQuery = "" }) {
     const router = useRouter();
-    const searchParams = useSearchParams();
-    const [value, setValue] = useState(searchParams.get("q") || "");
+    const inputRef = useRef(null);
     const debounceRef = useRef(null);
 
     const runSearch = (searchValue) => {
@@ -19,39 +18,30 @@ export default function SearchBar() {
         router.push(`/?${params.toString()}`);
     };
 
-    // Mantiene el input sincronizado con la URL real (ej. tras una
-    // navegación por historial, o si el componente se remonta a mitad de
-    // una transición de Next), en vez de confiar solo en el estado inicial.
-    useEffect(() => {
-        setValue(searchParams.get("q") || "");
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [searchParams]);
-
-    useEffect(() => {
-        const currentQ = searchParams.get("q") || "";
-        if (value === currentQ) return;
+    const handleChange = (e) => {
+        const nextValue = e.target.value;
+        clearTimeout(debounceRef.current);
         // Un campo vacío no dispara búsqueda automática: hay que enviar el
         // formulario explícitamente para volver a traer todos los items.
-        if (value.trim() === "") return;
-
-        debounceRef.current = setTimeout(() => runSearch(value), DEBOUNCE_MS);
-        return () => clearTimeout(debounceRef.current);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [value]);
+        if (nextValue.trim() === "") return;
+        debounceRef.current = setTimeout(() => runSearch(nextValue), DEBOUNCE_MS);
+    };
 
     const handleSubmit = (e) => {
         e.preventDefault();
         clearTimeout(debounceRef.current);
-        runSearch(value);
+        runSearch(inputRef.current?.value || "");
     };
 
     return (
         <form onSubmit={handleSubmit} className="mb-4 flex gap-2">
             <input
+                ref={inputRef}
+                key={initialQuery}
                 className="flex-1 border border-slate-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-shadow placeholder:text-slate-400 bg-white"
                 type="text"
-                value={value}
-                onChange={(e) => setValue(e.target.value)}
+                defaultValue={initialQuery}
+                onChange={handleChange}
                 placeholder="Buscar por título o descripción..."
             />
             <button

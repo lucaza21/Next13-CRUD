@@ -44,7 +44,7 @@ export default async function TopicsList({ query = "", page = 1 }) {
 
     return (
         <>
-        <SearchBar />
+        <SearchBar initialQuery={query} />
         {topics.length === 0 ? (
             <p className="text-center text-slate-500 py-10">No se encontraron topics.</p>
         ) : (
