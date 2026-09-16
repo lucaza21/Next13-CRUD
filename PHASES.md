@@ -35,11 +35,21 @@ Plan para llevar este CRUD tutorial (Next.js 13 + Mongoose/MongoDB) a un nivel m
 - Verificado end-to-end contra Atlas real (conexión, páginas cargando, 404 real y `notFound()` mostrando la página custom).
 - **Pendiente para más adelante** (decisión explícita, no ahora): migrar a TypeScript. Si se sube a Next 15, recordar que `params` pasa a ser `Promise` en `editTopic/[id]/page.jsx`.
 
-## Fase 3 — Features "senior"
+## Fase 3 — Features "senior" (en progreso)
 
-- Autenticación (NextAuth/Auth.js) con autorización básica (solo el dueño de un topic puede editar/borrar).
+### Autenticación y autorización ✅ (completada)
+
+- **Auth local** con NextAuth v4 (Credentials provider, sesión JWT, sin dependencias externas): `models/user.js` (email/password hasheado con bcryptjs/role), `libs/authOptions.js`, `app/api/auth/[...nextauth]/route.js`.
+- Registro vía Server Action (`app/actions/auth.js`, `registerUser`) — quien se registra con el email de `ADMIN_EMAIL` (variable de entorno) queda automáticamente como `role: "admin"`.
+- Páginas `/login` y `/register`, `Navbar.jsx` con estado de sesión (login/registro si no hay sesión; email + "Add Topic" + "Cerrar sesión" + "Admin" si hay sesión y es admin).
+- **Ownership real**: `Topic` ahora tiene `owner` (ref a `User`). `createTopic` requiere sesión y asigna el owner; `updateTopic`/`deleteTopic` verifican `isOwner || isAdmin` antes de mutar. `TopicsList.jsx` solo muestra los botones de editar/borrar al dueño o a un admin.
+- **Middleware** (`middleware.js`) protege `/addTopic`, `/editTopic/**` (requiere sesión) y `/admin` (requiere `role: "admin"`), redirigiendo a `/login`.
+- **Panel de admin** (`/admin`): lista todos los usuarios, permite borrar cuentas (con confirmación vía toast, no puede borrarse a sí mismo) — al borrar un usuario se borran en cascada sus topics (`app/actions/admin.js`).
+- Nota operativa: los topics creados **antes** de este cambio no tienen `owner` — solo un admin puede editarlos/borrarlos hasta que se les asigne un dueño o se eliminen.
+
+### Pendiente
+
 - Paginación + búsqueda en el listado (hoy `Topic.find()` trae toda la colección sin límite).
-- Estados de carga / deshabilitar botón en submit (evitar doble-submit) en los formularios.
-- Tests: unitarios (validación de schema/Zod) + integración (Playwright) para los 3 flujos CRUD.
+- Tests: unitarios (validación de schema/Zod) + integración (Playwright) para los 3 flujos CRUD y para el control de acceso (ownership/admin).
 - Observabilidad: logging estructurado en vez de `console.log` sueltos.
 - Opcional: evaluar migrar de Mongoose/Mongo a Prisma + Postgres como ejercicio de stack relacional.

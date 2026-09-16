@@ -14,6 +14,11 @@ const topicSchema = new Schema(
             trim: true,
             maxlength: 500,
         },
+        owner: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "User",
+            required: true,
+        },
     },
     {
         timestamps: true,
