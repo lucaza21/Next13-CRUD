@@ -57,6 +57,8 @@ Plan para llevar este CRUD tutorial (Next.js 13 + Mongoose/MongoDB) a un nivel m
 - **Hardening aplicado**: el texto de búsqueda se escapa (`escapeRegExp`) antes de construir el filtro — sin esto, un query como `(a+)+$` podía causar ReDoS (bloqueo del proceso por backtracking catastrófico) además de comportamiento de regex inesperado con caracteres especiales. Verificado con `curl` que ese patrón ya no rompe nada.
 - Verificado end-to-end: búsqueda que matchea, búsqueda vacía (mensaje "No se encontraron topics"), y el caso ReDoS, los 3 contra Atlas real.
 - **Búsqueda mientras se escribe** con debounce de 350ms (evita disparar una query por cada tecla). Excepción: si el campo queda vacío, no se auto-dispara — hay que enviar el formulario explícitamente para volver a traer todos los items.
+- **Bug real encontrado y corregido**: el input de búsqueda quedaba vacío después de cada búsqueda. Causa: `SearchBar` vivía dentro del mismo `Suspense` (creado por `app/loading.js`) que `TopicsList` — cada cambio de `searchParams` resuspende ese límite y React desmonta/remonta TODO lo de adentro, sin importar que el `defaultValue` fuera correcto. Solución (patrón oficial de Next para búsqueda+paginación): `SearchBar` se movió fuera del `Suspense`, y `app/page.js` envuelve solo `TopicsList` con un `<Suspense key={query+page}>` propio. Detalle completo en [TROUBLESHOOTING.md](TROUBLESHOOTING.md).
+- Verificado con **Playwright** (navegador real, instalado como devDependency) además de `curl`: login real, búsqueda, y confirmación de que el input retiene el texto tras la navegación.
 
 ### Pendiente
 

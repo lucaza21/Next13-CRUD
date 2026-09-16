@@ -60,5 +60,22 @@ Esto ocurre después de editar varias veces seguidas la forma de un Client Compo
 
 **Solución:** detener el dev server, borrar la carpeta `.next`, y volver a correr `npm run dev`. No es un bug del código.
 
-### 5. Warnings de "resource preloaded but not used" en consola del navegador
+### 5. Un input dentro de un componente async pierde su valor después de cada búsqueda/navegación
+Síntoma: un `<input>` (ej. la barra de búsqueda) muestra el texto mientras se escribe, pero queda vacío justo después de que la navegación (`router.push` con nuevos `searchParams`) trae los resultados — aunque el HTML que devuelve el servidor sea correcto (verificado con Playwright y con `curl`).
+
+**Causa real:** `app/loading.js` crea un límite de `Suspense` que envuelve TODO lo que retorna `page.js`. Cada vez que cambian los `searchParams` y el componente async que depende de ellos (`TopicsList`, que hace `await` a Mongo) se vuelve a suspender, React **desmonta todo el subárbol dentro de ese límite y lo vuelve a montar desde cero** cuando los datos llegan — incluyendo cualquier Client Component que esté ahí adentro (como `SearchBar`), sin importar que sus props/`defaultValue` sean correctos: el problema no es el valor, es que el nodo del DOM se destruye y se crea de nuevo.
+
+**Solución (patrón recomendado por la documentación de Next.js para búsqueda + paginación):** sacar el componente que debe sobrevivir a la navegación (el buscador) **fuera** del `Suspense` que envuelve solo la parte de datos, envolviendo explícitamente nada más el componente async con su propio `<Suspense key={...}>`:
+```jsx
+// app/page.js
+<SearchBar initialQuery={query} />
+<Suspense key={`${query}-${page}`} fallback={<Loading />}>
+    <TopicsList query={query} page={page} />
+</Suspense>
+```
+`app/loading.js` sigue aplicando para la primera entrada real a la ruta (ej. justo después del login), pero ya no afecta a `SearchBar` en cada búsqueda posterior, porque ahora es hermano del `Suspense`, no hijo suyo.
+
+Verificado con Playwright (navegador real, no solo `curl`): el input retiene el texto correctamente después de buscar.
+
+### 6. Warnings de "resource preloaded but not used" en consola del navegador
 Warnings de Chrome DevTools sobre `_next/static/css/app/layout.css` precargado y no usado a tiempo. Es ruido normal de Fast Refresh en modo desarrollo, no afecta funcionalidad — se puede ignorar.

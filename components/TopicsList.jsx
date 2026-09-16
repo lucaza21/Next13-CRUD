@@ -5,7 +5,6 @@ import connectMongoDB from "@/libs/mongodb";
 import Topic from "@/models/topic";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/libs/authOptions";
-import SearchBar from "./SearchBar";
 import Pagination from "./Pagination";
 
 const PAGE_SIZE = 5;
@@ -44,7 +43,6 @@ export default async function TopicsList({ query = "", page = 1 }) {
 
     return (
         <>
-        <SearchBar initialQuery={query} />
         {topics.length === 0 ? (
             <p className="text-center text-slate-500 py-10">No se encontraron topics.</p>
         ) : (
