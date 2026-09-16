@@ -6,6 +6,7 @@ import Topic from "@/models/topic";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/libs/authOptions";
 import Pagination from "./Pagination";
+import logger from "@/libs/logger";
 
 const PAGE_SIZE = 5;
 
@@ -38,7 +39,7 @@ export default async function TopicsList({ query = "", page = 1 }) {
         totalPages = result.totalPages;
         currentPage = result.currentPage;
     } catch (error) {
-        console.error("Error loading topics", error);
+        logger.error({ err: error }, "Error loading topics");
     }
 
     return (

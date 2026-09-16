@@ -4,6 +4,7 @@ import bcrypt from "bcryptjs";
 import connectMongoDB from "@/libs/mongodb";
 import User from "@/models/user";
 import { authSchema } from "@/libs/validation";
+import logger from "@/libs/logger";
 
 export async function registerUser(data) {
     const result = authSchema.safeParse(data);
@@ -23,7 +24,7 @@ export async function registerUser(data) {
         await User.create({ email, password: hashedPassword, role });
         return { success: true, message: "Cuenta creada correctamente" };
     } catch (error) {
-        console.error(error);
+        logger.error({ err: error }, "Failed to register");
         return { success: false, message: "Failed to register" };
     }
 }

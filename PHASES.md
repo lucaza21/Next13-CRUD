@@ -60,8 +60,14 @@ Plan para llevar este CRUD tutorial (Next.js 13 + Mongoose/MongoDB) a un nivel m
 - **Bug real encontrado y corregido**: el input de búsqueda quedaba vacío después de cada búsqueda. Causa: `SearchBar` vivía dentro del mismo `Suspense` (creado por `app/loading.js`) que `TopicsList` — cada cambio de `searchParams` resuspende ese límite y React desmonta/remonta TODO lo de adentro, sin importar que el `defaultValue` fuera correcto. Solución (patrón oficial de Next para búsqueda+paginación): `SearchBar` se movió fuera del `Suspense`, y `app/page.js` envuelve solo `TopicsList` con un `<Suspense key={query+page}>` propio. Detalle completo en [TROUBLESHOOTING.md](TROUBLESHOOTING.md).
 - Verificado con **Playwright** (navegador real, instalado como devDependency) además de `curl`: login real, búsqueda, y confirmación de que el input retiene el texto tras la navegación.
 
+### Observabilidad ✅ (completada)
+
+- **`pino`** como logger estructurado (`libs/logger.js`), aplicado solo en código que corre en servidor: `libs/mongodb.js`, `app/actions/topics.js`, `app/actions/admin.js`, `app/actions/auth.js`, `components/TopicsList.jsx`. En dev usa `pino-pretty` (coloreado, legible); en producción emite JSON plano.
+- Deliberadamente NO se tocaron los `console.error` de Client Components (`TopicForm.jsx`, `RemoveBtn.jsx`, `RemoveUserBtn.jsx`, `login`/`register`) ni los scripts de `scripts/` — esos logs viven en la consola del navegador o son CLIs de un solo uso, fuera del alcance de "logging estructurado del servidor".
+- **Bug real encontrado y corregido**: `pino-pretty` como `transport` (basado en worker threads) no es compatible con el bundling de servidor de Next.js — el worker no encuentra su módulo dentro de `.next/server/`, crasheando el dev server. Solución: usar `pino-pretty` como stream síncrono pasado directo al logger, no como `transport`.
+- Verificado en vivo (dev server + login real vía Playwright): log estructurado con timestamp/nivel/color aparece correctamente en consola sin crashear.
+
 ### Pendiente
 
-- Tests: unitarios (validación de schema/Zod) + integración (Playwright) para los 3 flujos CRUD y para el control de acceso (ownership/admin).
-- Observabilidad: logging estructurado en vez de `console.log` sueltos.
+- Tests: unitarios (validación de schema/Zod) + integración (Playwright, ya instalado) para los 3 flujos CRUD y para el control de acceso (ownership/admin).
 - Opcional: evaluar migrar de Mongoose/Mongo a Prisma + Postgres como ejercicio de stack relacional.

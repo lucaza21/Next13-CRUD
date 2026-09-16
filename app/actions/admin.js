@@ -6,6 +6,7 @@ import connectMongoDB from "@/libs/mongodb";
 import User from "@/models/user";
 import Topic from "@/models/topic";
 import { revalidatePath } from "next/cache";
+import logger from "@/libs/logger";
 
 export async function deleteUser(userId) {
     const session = await getServerSession(authOptions);
@@ -23,7 +24,7 @@ export async function deleteUser(userId) {
         }
         await Topic.deleteMany({ owner: userId });
     } catch (error) {
-        console.error(error);
+        logger.error({ err: error }, "Failed to delete user");
         return { success: false, message: "Failed to delete user" };
     }
     revalidatePath("/admin");
@@ -41,7 +42,7 @@ export async function getAllUsers() {
         const users = await User.find().select("-password").lean();
         return users.map((u) => ({ ...u, _id: u._id.toString() }));
     } catch (error) {
-        console.error(error);
+        logger.error({ err: error }, "Failed to get all users");
         return [];
     }
 }

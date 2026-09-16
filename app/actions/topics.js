@@ -6,6 +6,7 @@ import { topicSchema } from "@/libs/validation";
 import { revalidatePath } from "next/cache";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/libs/authOptions";
+import logger from "@/libs/logger";
 
 export async function createTopic(data) {
     const session = await getServerSession(authOptions);
@@ -20,7 +21,7 @@ export async function createTopic(data) {
         await connectMongoDB();
         await Topic.create({ ...result.data, owner: session.user.id });
     } catch (error) {
-        console.error(error);
+        logger.error({ err: error }, "Failed to create topic");
         return { success: false, message: "Failed to create topic" };
     }
     revalidatePath("/");
@@ -49,7 +50,7 @@ export async function updateTopic(id, data) {
         }
         await Topic.findByIdAndUpdate(id, result.data, { runValidators: true });
     } catch (error) {
-        console.error(error);
+        logger.error({ err: error }, "Failed to update topic");
         if (error.name === "CastError") {
             return { success: false, message: "Invalid topic id" };
         }
@@ -77,7 +78,7 @@ export async function deleteTopic(id) {
         }
         await Topic.findByIdAndDelete(id);
     } catch (error) {
-        console.error(error);
+        logger.error({ err: error }, "Failed to delete topic");
         if (error.name === "CastError") {
             return { success: false, message: "Invalid topic id" };
         }

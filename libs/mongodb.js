@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 import dns from "dns";
+import logger from "@/libs/logger";
 
 // Node's built-in DNS resolver (c-ares) can fail to read Windows' configured
 // DNS servers, breaking the SRV lookup that `mongodb+srv://` needs.
@@ -16,9 +17,9 @@ const connectMongoDB = async () => {
     try {
         await mongoose.connect(process.env.MONGODB_URI);
         isConnected = true;
-        console.log("Connected to MongoDB.");
+        logger.info("Connected to MongoDB");
     } catch (error) {
-        console.error(error);
+        logger.error({ err: error }, "Failed to connect to MongoDB");
         isConnected = false;
         throw error;
     }
