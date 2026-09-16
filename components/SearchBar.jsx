@@ -19,6 +19,14 @@ export default function SearchBar() {
         router.push(`/?${params.toString()}`);
     };
 
+    // Mantiene el input sincronizado con la URL real (ej. tras una
+    // navegación por historial, o si el componente se remonta a mitad de
+    // una transición de Next), en vez de confiar solo en el estado inicial.
+    useEffect(() => {
+        setValue(searchParams.get("q") || "");
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [searchParams]);
+
     useEffect(() => {
         const currentQ = searchParams.get("q") || "";
         if (value === currentQ) return;
