@@ -53,5 +53,12 @@ dns.setServers(["8.8.8.8", "1.1.1.1"]);
 ### 3. Puerto 3000 ocupado
 `next dev` cae automáticamente al puerto 3001 (`Port 3000 is in use, trying 3001 instead`). No es un error — solo hay que usar `localhost:3001` en el navegador. Si quieres liberar el 3000, busca qué proceso lo tiene con `netstat -ano | findstr :3000` (PowerShell/cmd) y ciérralo.
 
-### 4. Warnings de "resource preloaded but not used" en consola del navegador
+### 4. Caché de `next dev` corrupta tras editar repetidamente un Client Component
+Síntoma: un componente muestra datos/estado incorrectos en el navegador (ej. un input que aparece vacío) pese a que el HTML/payload que devuelve el servidor es correcto (verificable con `curl` inspeccionando la respuesta cruda). En consola del servidor puede no verse nada obvio, pero en el payload de streaming de React aparece un error tipo `Cannot read properties of undefined (reading 'call')` dentro de `ServerComponentWrapper`, seguido de un mecanismo de reintento (`$RX`) que descarta el contenido correcto y deja ese boundary en un estado roto.
+
+Esto ocurre después de editar varias veces seguidas la forma de un Client Component (ej. cambiar de input controlado a no controlado) — la caché incremental de compilación de `next dev` (carpeta `.next`) se desincroniza del código real.
+
+**Solución:** detener el dev server, borrar la carpeta `.next`, y volver a correr `npm run dev`. No es un bug del código.
+
+### 5. Warnings de "resource preloaded but not used" en consola del navegador
 Warnings de Chrome DevTools sobre `_next/static/css/app/layout.css` precargado y no usado a tiempo. Es ruido normal de Fast Refresh en modo desarrollo, no afecta funcionalidad — se puede ignorar.
