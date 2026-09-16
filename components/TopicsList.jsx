@@ -21,14 +21,17 @@ export default async function TopicsList() {
     return (
         <>
         {topics.map((topic) => (
-            <div key={topic._id} className="p-4 border border-slate-300 my-3 flex justify-between gap-5 items-start">
+            <div key={topic._id} className="my-3 flex items-start justify-between gap-5 rounded-xl bg-white/80 p-4 shadow-md backdrop-blur transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg">
             <div>
-                <h2 className="font-bold text-2xl">{topic.title}</h2>
-                <div>{topic.description}</div>
+                <h2 className="text-2xl font-bold text-slate-800">{topic.title}</h2>
+                <div className="text-slate-600">{topic.description}</div>
             </div>
             <div className="flex gap-2">
                 <RemoveBtn id={topic._id}/>
-                <Link href={`/editTopic/${topic._id}`}>
+                <Link
+                    className="flex h-9 w-9 items-center justify-center rounded-full text-slate-500 transition-colors hover:bg-emerald-100 hover:text-emerald-700"
+                    href={`/editTopic/${topic._id}`}
+                >
                     <HiPencilAlt size={24} />
                 </Link>
             </div>

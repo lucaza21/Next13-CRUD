@@ -20,6 +20,9 @@ Plan para llevar este CRUD tutorial (Next.js 13 + Mongoose/MongoDB) a un nivel m
 - `app/addTopic/page.jsx` y `components/EditTopicForm.jsx` reemplazados por un único `components/TopicForm.jsx` (`mode="add"|"edit"`), con estado `isSubmitting` (deshabilita el botón, evita doble-submit) y manejo de errores de Zod en la UI.
 - `EditTopicForm.jsx` eliminado. Verificado con `npm run lint` (0 warnings/errores).
 - Reemplazados `alert()`/`confirm()` nativos por **react-hot-toast**: `<Toaster />` global en `app/layout.js`, toasts de éxito/error en `TopicForm.jsx`, y un toast custom con botones "Eliminar"/"Cancelar" en `RemoveBtn.jsx` reemplazando el `confirm()` del navegador.
+- Endurecido: `GET`/`PUT` en `[id]/route.js` devuelven 400 (no 500) ante un `id` malformado, igual que `DELETE`.
+- Botón "Cancelar" en `TopicForm.jsx` (crear/editar) que vuelve a `/` sin guardar.
+- Rediseño visual completo con Tailwind (paleta esmeralda consistente): fondo con gradiente en `app/layout.js`, navbar con gradiente oscuro y botón de acento, cards con hover/elevación y backdrop-blur en `TopicsList.jsx`, inputs con focus ring y card de formulario en `TopicForm.jsx`. Sin librerías de UI nuevas.
 
 ## Fase 2 — Modernizar a patrones actuales de Next (14/15)
 
