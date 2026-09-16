@@ -1,25 +1,22 @@
 import { HiPencilAlt } from "react-icons/hi"
 import RemoveBtn from "./RemoveBtn";
 import Link from "next/link";
+import connectMongoDB from "@/libs/mongodb";
+import Topic from "@/models/topic";
 
 const getTopics = async () => {
-    try {
-        const res = await fetch("http://localhost:3000/api/topics", {
-            cache: "no-store",
-        });
-        
-        if(!res.ok) {
-            throw new Error("Failed to fetch topics");
-        }
-
-        return res.json();
-    } catch (error) {
-        console.log("Error loading topics", error);
-    }
+    await connectMongoDB();
+    const topics = await Topic.find().lean();
+    return topics.map((t) => ({ ...t, _id: t._id.toString() }));
 }
 
 export default async function TopicsList() {
-    const { topics } = await getTopics();
+    let topics = [];
+    try {
+        topics = await getTopics();
+    } catch (error) {
+        console.error("Error loading topics", error);
+    }
 
     return (
         <>

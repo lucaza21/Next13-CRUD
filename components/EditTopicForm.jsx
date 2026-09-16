@@ -2,44 +2,45 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
-export default function EditTipicForm({ id, title, description }) {
-    const [newTitle, setNewtitle] = useState(title);
+export default function EditTopicForm({ id, title, description }) {
+    const [newTitle, setNewTitle] = useState(title);
     const [newDescription, setNewDescription] = useState(description);
 
     const router = useRouter();
 
-    const handleSubmit = async (e) =>{
+    const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            const res = await fetch(`http://localhost:3000/api/topics/${id}`, {
-                method:"PUT",
+            const res = await fetch(`/api/topics/${id}`, {
+                method: "PUT",
                 headers: {
                     "Content-type": "application/json",
                 },
                 body: JSON.stringify({ newTitle, newDescription })
             });
 
-            if(res.ok) {
+            if (res.ok) {
                 router.refresh();
                 router.push("/");
             } else {
                 throw new Error("Failed to edit topic");
             }
         } catch (error) {
-            
+            console.error(error);
+            alert("Failed to update topic");
         }
     }
 
     return (
         <form onSubmit={handleSubmit} className="flex flex-col gap-3">
-        <input 
+        <input
             className="border border-slate-500 px-8 py-2"
-            onChange={(e) => setNewtitle(e.target.value)}
+            onChange={(e) => setNewTitle(e.target.value)}
             value={newTitle}
             type="text"
             placeholder="Topic Title"
         />
-        <input 
+        <input
             className="border border-slate-500 px-8 py-2"
             onChange={(e) => setNewDescription(e.target.value)}
             value={newDescription}
