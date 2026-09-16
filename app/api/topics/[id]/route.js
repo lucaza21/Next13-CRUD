@@ -30,6 +30,12 @@ export async function PUT(request, { params }) {
         return NextResponse.json({ message: "Topic Updated" }, { status: 200 });
     } catch (error) {
         console.error(error);
+        if (error.name === "CastError") {
+            return NextResponse.json(
+                { message: "Invalid topic id" },
+                { status: 400 }
+            );
+        }
         return NextResponse.json(
             { message: "Failed to update topic" },
             { status: 500 }
@@ -51,6 +57,12 @@ export async function GET(request, { params }) {
         return NextResponse.json({ topic }, { status: 200 });
     } catch (error) {
         console.error(error);
+        if (error.name === "CastError") {
+            return NextResponse.json(
+                { message: "Invalid topic id" },
+                { status: 400 }
+            );
+        }
         return NextResponse.json(
             { message: "Failed to retrieve topic" },
             { status: 500 }
