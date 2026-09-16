@@ -1,6 +1,7 @@
 "use client"
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import toast from "react-hot-toast";
 
 export default function TopicForm({ mode, id, initialTitle = "", initialDescription = "" }) {
     const [title, setTitle] = useState(initialTitle);
@@ -22,22 +23,23 @@ export default function TopicForm({ mode, id, initialTitle = "", initialDescript
             });
 
             if (res.ok) {
+                toast.success(mode === "add" ? "Topic creado correctamente" : "Topic actualizado correctamente");
                 router.refresh();
                 router.push("/");
             } else {
                 const err = await res.json().catch(() => null);
                 if (err && err.errors) {
                     const messages = Object.values(err.errors).flat().join("\n");
-                    alert(messages || "Datos inválidos");
+                    toast.error(messages || "Datos inválidos");
                 } else if (err && err.message) {
-                    alert(err.message);
+                    toast.error(err.message);
                 } else {
-                    alert(mode === "add" ? "Failed to create topic" : "Failed to update topic");
+                    toast.error(mode === "add" ? "Failed to create topic" : "Failed to update topic");
                 }
             }
         } catch (error) {
             console.error(error);
-            alert(mode === "add" ? "Failed to create topic" : "Failed to update topic");
+            toast.error(mode === "add" ? "Failed to create topic" : "Failed to update topic");
         } finally {
             setIsSubmitting(false);
         }
