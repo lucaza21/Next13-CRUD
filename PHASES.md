@@ -45,7 +45,9 @@ Plan para llevar este CRUD tutorial (Next.js 13 + Mongoose/MongoDB) a un nivel m
 - **Ownership real**: `Topic` ahora tiene `owner` (ref a `User`). `createTopic` requiere sesión y asigna el owner; `updateTopic`/`deleteTopic` verifican `isOwner || isAdmin` antes de mutar. `TopicsList.jsx` solo muestra los botones de editar/borrar al dueño o a un admin.
 - **Middleware** (`middleware.js`) protege `/addTopic`, `/editTopic/**` (requiere sesión) y `/admin` (requiere `role: "admin"`), redirigiendo a `/login`.
 - **Panel de admin** (`/admin`): lista todos los usuarios, permite borrar cuentas (con confirmación vía toast, no puede borrarse a sí mismo) — al borrar un usuario se borran en cascada sus topics (`app/actions/admin.js`).
-- Nota operativa: los topics creados **antes** de este cambio no tienen `owner` — solo un admin puede editarlos/borrarlos hasta que se les asigne un dueño o se eliminen.
+- La ruta `/` también quedó protegida por el middleware (requiere sesión) — el listado de topics ya no es público.
+- **Bug de configuración encontrado y corregido**: `NEXTAUTH_SECRET`/`NEXTAUTH_URL` deben vivir en un archivo `.env`/`.env.local` **nativo** de Next (no en `atlas-credentials.env`, que se carga con un loader custom que solo corre en runtime Node.js). `middleware.js` corre en Edge Runtime y no veía esas variables, causando un error de configuración de NextAuth al proteger `/`. Solución: `NEXTAUTH_SECRET`/`NEXTAUTH_URL` van en `.env.local` (nativo, gitignored); `MONGODB_URI`/`ADMIN_EMAIL` siguen en `atlas-credentials.env` (solo se usan en Node.js runtime).
+- Scripts de mantenimiento en `scripts/` (uso manual, no se ejecutan como parte de la app): `assign-owner-to-legacy-topics.js` (asigna los topics sin `owner` a un usuario dado) y `promote-to-admin.js` (sube el rol de una cuenta existente a `admin` sin perder la cuenta). Ya usados una vez para migrar los datos previos a este cambio.
 
 ### Pendiente
 

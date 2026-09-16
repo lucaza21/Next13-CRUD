@@ -15,5 +15,5 @@ export default withAuth({
 });
 
 export const config = {
-    matcher: ["/addTopic/:path*", "/editTopic/:path*", "/admin/:path*"],
+    matcher: ["/", "/addTopic/:path*", "/editTopic/:path*", "/admin/:path*"],
 };
